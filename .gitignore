@@ -1,0 +1,17 @@
+node_modules/
+npm-debug.log*
+
+# Runtime database and local data files
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/store.json
+
+# Local archives generated during iteration
+*.zip
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

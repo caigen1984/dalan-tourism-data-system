@@ -1,0 +1,10 @@
+{
+  "name": "dalan-tourism-data-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "大岚文旅数据分析系统",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --no-warnings server.js"
+  }
+}

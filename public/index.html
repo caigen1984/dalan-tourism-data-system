@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>大岚文旅数据分析系统</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <section class="login-screen" id="loginScreen">
+      <form class="login-card" id="loginForm">
+        <p class="eyebrow">大岚镇文旅数据中心</p>
+        <h1>大岚文旅数据分析系统</h1>
+        <p class="login-hint">请选择管理员、民宿或景区账号登录。系统会根据账号自动显示对应数据。</p>
+        <label>账号
+          <input name="username" autocomplete="username" value="admin" required />
+        </label>
+        <label>密码
+          <input name="password" type="password" autocomplete="current-password" value="admin123" required />
+        </label>
+        <button type="submit">登录系统</button>
+        <div class="demo-accounts">
+          <span>演示账号</span>
+          <button type="button" data-demo-user="admin" data-demo-pass="admin123">管理员</button>
+          <button type="button" data-demo-user="homestay1" data-demo-pass="dl123">民宿端</button>
+          <button type="button" data-demo-user="scenic1" data-demo-pass="dl123">景区端</button>
+        </div>
+      </form>
+    </section>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">大岚镇文旅数据中心</p>
+        <h1>大岚文旅数据分析系统</h1>
+      </div>
+      <div class="top-actions">
+        <span class="user-badge" id="userBadge"></span>
+        <button class="ghost" id="refreshBtn">刷新</button>
+        <button id="exportBtn">导出数据</button>
+        <button class="ghost" id="passwordBtn">改密码</button>
+        <button class="ghost" id="logoutBtn">退出</button>
+      </div>
+    </header>
+
+    <main>
+      <nav class="module-nav" aria-label="系统模块">
+        <button class="module-tab active" data-view="maintainView">基础维护</button>
+        <button class="module-tab" data-view="entryView">运维录入</button>
+        <button class="module-tab" data-view="analysisView">数据分析</button>
+      </nav>
+
+      <section class="metrics" id="metrics"></section>
+
+      <section id="maintainView" class="view active">
+        <section class="panel">
+          <div class="panel-title">
+            <div>
+              <p class="eyebrow">手工台账</p>
+              <h2 id="maintainTitle">民宿与景区基础情况维护</h2>
+            </div>
+            <div class="tabs compact">
+              <button class="tab active" data-tab="homestays">民宿</button>
+              <button class="tab" data-tab="scenicSpots">景区</button>
+              <button class="tab" data-tab="newBusinesses">新业态</button>
+              <button class="tab" data-tab="farmhouses">农家乐</button>
+              <button class="tab" data-tab="users">账号</button>
+            </div>
+          </div>
+          <div class="panel-title slim">
+            <p class="eyebrow" id="tableHint">逐家维护民宿名称、片区、房间床位、负责人等基础数据。</p>
+            <button id="addBtn">新增</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="dataHead"></thead>
+              <tbody id="dataRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="entryView" class="view">
+        <section class="panel entry-wizard">
+          <div class="panel-title">
+            <div>
+              <p class="eyebrow">月度录入流程</p>
+              <h2>选择对象和月份后录入运维数据</h2>
+            </div>
+            <button id="openOperationBtn" type="button">录入/编辑本月数据</button>
+          </div>
+
+          <div class="entry-steps">
+            <div class="step-item">
+              <span>1</span>
+              <label>对象类型
+                <select id="entryTypeSelect">
+                  <option value="homestay">民宿</option>
+                  <option value="scenicSpot">景区</option>
+                  <option value="newBusiness">新业态</option>
+                  <option value="farmhouse">农家乐</option>
+                  <option value="activity">活动</option>
+                </select>
+              </label>
+            </div>
+            <div class="step-item">
+              <span>2</span>
+              <label>具体对象
+                <select id="entryEntitySelect"></select>
+              </label>
+            </div>
+            <div class="step-item">
+              <span>3</span>
+              <label>记录月份
+                <input id="entryMonth" type="month" required />
+              </label>
+            </div>
+          </div>
+
+          <div class="selected-box" id="selectedEntityBox"></div>
+        </section>
+
+        <section class="panel" id="dailyReferencePanel">
+          <div class="panel-title">
+            <div>
+              <p class="eyebrow">日参考参数</p>
+              <h2>某一天的车流量等补充数据</h2>
+            </div>
+            <button id="openDailyBtn" type="button">新增日参考</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="dailyHead"></thead>
+              <tbody id="dailyRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">
+            <div>
+              <p class="eyebrow">月度记录</p>
+              <h2>已录入的月度运维数据</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="operationHead"></thead>
+              <tbody id="operationRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="analysisView" class="view">
+        <section class="analysis-hero panel">
+          <div class="panel-title">
+            <div>
+              <p class="eyebrow">本月数据查询</p>
+              <h2>选择月份查看当月经营情况</h2>
+            </div>
+            <label class="inline-control">查询月份
+              <select id="analysisMonthSelect"></select>
+            </label>
+          </div>
+          <div class="month-cards" id="analysisMonthCards"></div>
+          <div class="admin-alerts" id="adminAlertCards"></div>
+          <div class="table-wrap analysis-month-table">
+            <table>
+              <thead>
+                <tr id="analysisMonthHead"></tr>
+              </thead>
+              <tbody id="analysisMonthRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="analysis-grid">
+          <article class="panel chart-panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">月度趋势</p>
+                <h2>游客量变化</h2>
+              </div>
+            </div>
+            <div class="chart-summary" id="primaryTrendSummary"></div>
+            <div class="chart" id="visitorTrendChart"></div>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">经营表现</p>
+                <h2>营收变化</h2>
+              </div>
+            </div>
+            <div class="chart-summary" id="revenueTrendSummary"></div>
+            <div class="chart revenue-chart" id="revenueTrendChart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">推理结论</p>
+                <h2>系统自动判断</h2>
+              </div>
+            </div>
+            <div class="analysis-list" id="insightList"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">经营建议</p>
+                <h2>本月观察与联动动作</h2>
+              </div>
+            </div>
+            <div class="analysis-list" id="recommendationList"></div>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">活动联动</p>
+                <h2>活动与经营主体关联</h2>
+              </div>
+            </div>
+            <div class="forecast-dashboard">
+              <div class="rank-chart" id="activityLinkChart"></div>
+              <div class="forecast-text" id="activityLinkText"></div>
+            </div>
+          </article>
+
+          <article class="panel admin-analysis">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">民宿运行</p>
+                <h2>入住与营收排行</h2>
+              </div>
+            </div>
+            <div class="rank-chart" id="homestayRankList"></div>
+          </article>
+
+          <article class="panel admin-analysis">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">景区运行</p>
+                <h2>客流与车流排行</h2>
+              </div>
+            </div>
+            <div class="rank-chart" id="scenicRankList"></div>
+          </article>
+
+          <article class="panel admin-analysis">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">风险提示</p>
+                <h2>异常与压力线索</h2>
+              </div>
+            </div>
+            <div class="analysis-list" id="riskSignalList"></div>
+          </article>
+
+          <article class="panel admin-analysis">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">补录提醒</p>
+                <h2>数据完整性</h2>
+              </div>
+            </div>
+            <div class="analysis-list" id="missingDataList"></div>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="editDialog">
+      <form method="dialog" id="editForm">
+        <div class="panel-title">
+          <div>
+            <p class="eyebrow">数据维护</p>
+            <h2 id="dialogTitle">新增数据</h2>
+          </div>
+          <button class="icon-btn" value="cancel" type="button" data-close-dialog>×</button>
+        </div>
+        <div id="editFields" class="form-grid"></div>
+        <menu>
+          <button class="ghost" value="cancel" type="button" data-close-dialog>取消</button>
+          <button id="saveEditBtn" value="default" type="submit">保存</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="passwordDialog">
+      <form method="dialog" id="passwordForm">
+        <div class="panel-title">
+          <div>
+            <p class="eyebrow">账号安全</p>
+            <h2>修改密码</h2>
+          </div>
+          <button class="icon-btn" value="cancel" type="button" data-close-password>×</button>
+        </div>
+        <div class="form-grid">
+          <label class="full">原密码<input name="oldPassword" type="password" autocomplete="current-password" required /></label>
+          <label class="full">新密码<input name="newPassword" type="password" autocomplete="new-password" required /></label>
+        </div>
+        <menu>
+          <button class="ghost" value="cancel" type="button" data-close-password>取消</button>
+          <button value="default" type="submit">保存</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
