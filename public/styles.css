@@ -1,17 +1,21 @@
 :root {
   color-scheme: light;
-  --bg: #f6f7f3;
+  --bg: #f2f4f1;
+  --bg-soft: #fafaf7;
   --panel: #ffffff;
-  --ink: #17231d;
-  --muted: #6f776f;
-  --line: #e5e9e1;
-  --brand: #214f43;
-  --brand-2: #3d7b68;
-  --accent: #b79654;
-  --accent-soft: #f4efe4;
+  --panel-soft: #fbfbf8;
+  --ink: #13221c;
+  --muted: #69736d;
+  --line: #dfe5dc;
+  --brand: #234f43;
+  --brand-2: #4f806f;
+  --brand-soft: #eef5f1;
+  --accent: #aa8747;
+  --accent-soft: #f5efe4;
   --danger: #b42318;
-  --shadow: 0 12px 28px rgba(28, 42, 36, 0.07);
-  --shadow-soft: 0 4px 14px rgba(28, 42, 36, 0.05);
+  --shadow: 0 18px 48px rgba(26, 40, 34, 0.08);
+  --shadow-soft: 0 8px 22px rgba(26, 40, 34, 0.055);
+  --shadow-quiet: 0 1px 0 rgba(26, 40, 34, 0.05);
 }
 
 * {
@@ -27,10 +31,25 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at 12% 0%, rgba(183, 150, 84, 0.08), transparent 28%),
-    linear-gradient(180deg, #fbfcfa 0, var(--bg) 260px);
+    linear-gradient(180deg, #fcfcf9 0, #f6f7f3 220px, var(--bg) 100%),
+    repeating-linear-gradient(90deg, rgba(35, 79, 67, 0.018) 0 1px, transparent 1px 92px);
   color: var(--ink);
   font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: auto 0 0;
+  z-index: -1;
+  height: 260px;
+  background:
+    linear-gradient(165deg, transparent 0 42%, rgba(35, 79, 67, 0.035) 42.3% 42.8%, transparent 43%),
+    linear-gradient(152deg, transparent 0 54%, rgba(170, 135, 71, 0.04) 54.2% 54.7%, transparent 55%),
+    linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.55));
+  pointer-events: none;
 }
 
 body.login-active {
@@ -51,8 +70,8 @@ body.login-active main {
   place-items: center;
   padding: 24px;
   background:
-    radial-gradient(circle at 22% 18%, rgba(183, 150, 84, 0.12), transparent 30%),
-    linear-gradient(180deg, rgba(251, 252, 250, 0.96), rgba(236, 240, 232, 0.96));
+    linear-gradient(180deg, rgba(252, 252, 249, 0.98), rgba(239, 242, 237, 0.96)),
+    repeating-linear-gradient(90deg, rgba(35, 79, 67, 0.025) 0 1px, transparent 1px 84px);
 }
 
 .login-screen.active {
@@ -63,11 +82,11 @@ body.login-active main {
   width: min(460px, 100%);
   display: grid;
   gap: 16px;
-  padding: 34px;
-  border: 1px solid rgba(33, 79, 67, 0.12);
+  padding: 36px;
+  border: 1px solid rgba(35, 79, 67, 0.12);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 22px 70px rgba(28, 42, 36, 0.16);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 80px rgba(26, 40, 34, 0.16);
 }
 
 .login-card h1 {
@@ -104,11 +123,12 @@ body.login-active main {
   align-items: center;
   min-height: 40px;
   padding: 0 12px;
-  border: 1px solid rgba(33, 79, 67, 0.12);
+  border: 1px solid rgba(35, 79, 67, 0.14);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: rgba(255, 255, 255, 0.72);
   color: var(--brand);
   font-size: 14px;
+  box-shadow: var(--shadow-quiet);
 }
 
 button,
@@ -119,25 +139,26 @@ select {
 
 button,
 select {
-  border: 1px solid rgba(33, 79, 67, 0.22);
+  border: 1px solid rgba(35, 79, 67, 0.22);
   border-radius: 8px;
   background: var(--brand);
   color: #fff;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 42px;
+  padding: 0 17px;
   cursor: pointer;
   box-shadow: var(--shadow-soft);
-  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 button:hover {
   filter: none;
   transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(26, 40, 34, 0.1);
 }
 
 .ghost {
-  border-color: rgba(33, 79, 67, 0.28);
-  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(35, 79, 67, 0.18);
+  background: rgba(255, 255, 255, 0.9);
   color: var(--brand);
 }
 
@@ -155,19 +176,29 @@ button:hover {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px 40px 22px;
-  border-bottom: 1px solid rgba(33, 79, 67, 0.12);
-  background: rgba(255, 255, 255, 0.92);
+  padding: 28px clamp(24px, 4vw, 54px) 24px;
+  border-bottom: 1px solid rgba(35, 79, 67, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(252, 252, 249, 0.94));
   color: var(--ink);
-  box-shadow: 0 8px 26px rgba(31, 52, 44, 0.06);
+  box-shadow: 0 10px 34px rgba(31, 52, 44, 0.055);
 }
 
 .topbar h1 {
-  margin: 6px 0 0;
+  margin: 7px 0 0;
   color: var(--brand);
-  font-size: clamp(26px, 3vw, 34px);
+  font-size: clamp(30px, 3.1vw, 44px);
   font-weight: 800;
   letter-spacing: 0;
+  line-height: 1.1;
+}
+
+.brand-mark {
+  display: none;
+  width: 38px;
+  height: 26px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .topbar .eyebrow {
@@ -178,11 +209,12 @@ button:hover {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 main {
-  width: min(1440px, calc(100% - 32px));
-  margin: 22px auto 52px;
+  width: min(1480px, calc(100% - 40px));
+  margin: 28px auto 58px;
 }
 
 .eyebrow {
@@ -195,8 +227,8 @@ main {
 .metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 22px;
 }
 
 .metrics.hidden {
@@ -205,7 +237,7 @@ main {
 
 .metric,
 .panel {
-  border: 1px solid rgba(33, 79, 67, 0.11);
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
   background: var(--panel);
   box-shadow: var(--shadow);
@@ -214,14 +246,24 @@ main {
 .metric {
   position: relative;
   overflow: hidden;
-  padding: 16px 18px;
+  min-height: 106px;
+  padding: 18px 20px;
+  background: linear-gradient(180deg, #fff, var(--panel-soft));
+}
+
+.metric::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(35, 79, 67, 0.16), transparent);
 }
 
 .metric b {
   display: block;
   margin-top: 8px;
   color: var(--brand);
-  font-size: 26px;
+  font-size: 28px;
   line-height: 1.15;
 }
 
@@ -255,10 +297,10 @@ main {
   grid-template-columns: 34px minmax(0, 1fr);
   gap: 10px;
   align-items: end;
-  padding: 14px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  padding: 16px;
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: linear-gradient(180deg, #fff, var(--panel-soft));
 }
 
 .step-item > span {
@@ -267,13 +309,16 @@ main {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  background: var(--brand);
   color: #fff;
   font-weight: 700;
+  box-shadow: 0 10px 22px rgba(35, 79, 67, 0.18);
 }
 
 .panel {
-  padding: 22px;
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(252, 252, 249, 0.96));
 }
 
 .panel-title {
@@ -286,9 +331,10 @@ main {
 
 .panel h2 {
   margin: 4px 0 0;
-  color: #1d2d25;
-  font-size: 20px;
+  color: var(--ink);
+  font-size: 21px;
   font-weight: 750;
+  line-height: 1.35;
 }
 
 .inline-control {
@@ -304,7 +350,7 @@ main {
 
 #analysisMonthCards {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
@@ -315,8 +361,8 @@ main {
 .admin-alerts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  margin-top: 14px;
+  gap: 14px;
+  margin-top: 16px;
 }
 
 .admin-alerts[hidden] {
@@ -324,10 +370,10 @@ main {
 }
 
 .alert-card {
-  padding: 16px;
-  border: 1px solid rgba(190, 153, 82, 0.22);
+  padding: 17px;
+  border: 1px solid rgba(170, 135, 71, 0.22);
   border-radius: 8px;
-  background: linear-gradient(180deg, #fffdf8, #fbfcfa);
+  background: linear-gradient(180deg, #fffdf7, #fcfbf6);
 }
 
 .alert-card b {
@@ -352,12 +398,20 @@ main {
   gap: 12px;
   position: relative;
   overflow: hidden;
-  min-height: 116px;
-  padding: 16px 18px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  min-height: 118px;
+  padding: 18px;
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: linear-gradient(180deg, #ffffff, #fbfcfa);
+  background: linear-gradient(180deg, #fff, var(--panel-soft));
   box-shadow: var(--shadow-soft);
+}
+
+.analysis-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, rgba(35, 79, 67, 0.48), rgba(35, 79, 67, 0.08));
 }
 
 .stat-icon {
@@ -366,7 +420,7 @@ main {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: #edf4ef;
+  background: var(--brand-soft);
   color: var(--brand);
   font-size: 17px;
   font-weight: 800;
@@ -385,7 +439,7 @@ main {
   display: block;
   margin-top: 6px;
   color: var(--brand);
-  font-size: 24px;
+  font-size: 25px;
   line-height: 1.2;
   white-space: nowrap;
 }
@@ -408,7 +462,7 @@ main {
 .analysis-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 20px;
 }
 
 .analysis-grid .wide {
@@ -430,15 +484,15 @@ main {
 .chart-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .chart-summary span {
-  padding: 10px 12px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  padding: 11px 12px;
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: var(--panel-soft);
 }
 
 .chart-summary b,
@@ -474,9 +528,9 @@ main {
   gap: 12px;
   align-content: center;
   padding: 16px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: var(--panel-soft);
 }
 
 .forecast-text p {
@@ -522,7 +576,7 @@ main {
   height: 9px;
   overflow: hidden;
   border-radius: 999px;
-  background: #eef2ed;
+  background: #edf2ee;
 }
 
 .rank-track i {
@@ -530,6 +584,7 @@ main {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--brand-2), var(--brand));
+  box-shadow: 0 6px 14px rgba(35, 79, 67, 0.14);
 }
 
 .rank-row small {
@@ -547,10 +602,10 @@ main {
 
 .analysis-item {
   margin: 0;
-  padding: 13px 14px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  padding: 14px 15px;
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: var(--panel-soft);
   color: var(--ink);
   line-height: 1.55;
 }
@@ -569,13 +624,13 @@ main {
 .chart {
   display: flex;
   align-items: end;
-  gap: 8px;
+  gap: 10px;
   height: 240px;
   padding: 26px 10px 6px;
   border-bottom: 1px solid var(--line);
   background:
-    linear-gradient(to top, rgba(33, 79, 67, 0.06) 1px, transparent 1px) 0 0 / 100% 25%,
-    linear-gradient(180deg, #ffffff, #fbfcfa);
+    linear-gradient(to top, rgba(35, 79, 67, 0.06) 1px, transparent 1px) 0 0 / 100% 25%,
+    linear-gradient(180deg, #ffffff, var(--panel-soft));
 }
 
 .bar {
@@ -584,7 +639,7 @@ main {
   min-width: 18px;
   border-radius: 5px 5px 0 0;
   background: linear-gradient(180deg, var(--brand-2), var(--brand));
-  box-shadow: 0 8px 18px rgba(33, 79, 67, 0.14);
+  box-shadow: 0 8px 18px rgba(35, 79, 67, 0.14);
 }
 
 .bar span {
@@ -609,6 +664,9 @@ main {
 .table-wrap {
   width: 100%;
   overflow-x: auto;
+  border: 1px solid rgba(35, 79, 67, 0.07);
+  border-radius: 8px;
+  background: #fff;
 }
 
 table {
@@ -618,28 +676,45 @@ table {
   min-width: 760px;
 }
 
+thead th:first-child {
+  border-top-left-radius: 8px;
+}
+
+thead th:last-child {
+  border-top-right-radius: 8px;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.analysis-month-table,
+.panel > .table-wrap {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
 th,
 td {
-  padding: 14px 14px;
+  padding: 15px 14px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
 }
 
 th {
-  background: #fafbf8;
-  color: #5f6b62;
+  background: #f7f8f5;
+  color: #59665e;
   font-size: 13px;
   font-weight: 700;
 }
 
 td {
   font-size: 15px;
-  color: #38443d;
+  color: #33423a;
 }
 
 tbody tr:hover td {
-  background: #fbfcfa;
+  background: #fafbf8;
 }
 
 .empty-cell {
@@ -689,15 +764,15 @@ select {
   border-radius: 8px;
   background: #fff;
   color: var(--ink);
-  min-height: 40px;
+  min-height: 42px;
   padding: 0 12px;
   box-shadow: none;
 }
 
 input:focus,
 select:focus {
-  outline: 2px solid rgba(183, 150, 84, 0.24);
-  border-color: rgba(183, 150, 84, 0.72);
+  outline: 2px solid rgba(170, 135, 71, 0.22);
+  border-color: rgba(170, 135, 71, 0.72);
 }
 
 .full {
@@ -716,24 +791,25 @@ select:focus {
   gap: 6px;
   flex-wrap: wrap;
   width: fit-content;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   padding: 5px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.88);
   box-shadow: var(--shadow-soft);
 }
 
 .module-tab {
-  min-width: 110px;
+  min-width: 118px;
   border-color: transparent;
   background: transparent;
   color: var(--brand);
   box-shadow: none;
+  font-weight: 700;
 }
 
 .module-tab.active {
-  background: linear-gradient(135deg, var(--brand), #2f6657);
+  background: var(--brand);
   color: #fff;
 }
 
@@ -770,10 +846,10 @@ select:focus {
   display: grid;
   gap: 6px;
   min-height: 92px;
-  padding: 14px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  padding: 15px;
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: #fff;
+  background: linear-gradient(180deg, #fff, var(--panel-soft));
   color: var(--ink);
   text-align: left;
   box-shadow: var(--shadow-soft);
@@ -791,8 +867,8 @@ select:focus {
 
 .entity-card.active {
   border-color: var(--brand);
-  background: #f3f8f5;
-  box-shadow: inset 0 0 0 1px rgba(33, 79, 67, 0.18), var(--shadow-soft);
+  background: #f2f8f5;
+  box-shadow: inset 0 0 0 1px rgba(35, 79, 67, 0.18), var(--shadow-soft);
 }
 
 .entry-side {
@@ -806,10 +882,10 @@ select:focus {
   display: grid;
   gap: 6px;
   min-height: 116px;
-  padding: 14px;
-  border: 1px solid rgba(33, 79, 67, 0.1);
+  padding: 16px;
+  border: 1px solid rgba(35, 79, 67, 0.1);
   border-radius: 8px;
-  background: #fbfcfa;
+  background: linear-gradient(180deg, #fff, var(--panel-soft));
 }
 
 .selected-box strong {
@@ -819,11 +895,13 @@ select:focus {
 .tab {
   background: #fff;
   color: var(--brand);
+  box-shadow: none;
 }
 
 .tab.active {
-  background: linear-gradient(135deg, var(--brand), #2f6657);
+  background: var(--brand);
   color: #fff;
+  box-shadow: var(--shadow-soft);
 }
 
 dialog {
@@ -831,7 +909,7 @@ dialog {
   border: 0;
   border-radius: 8px;
   padding: 0;
-  box-shadow: var(--shadow);
+  box-shadow: 0 26px 90px rgba(26, 40, 34, 0.24);
 }
 
 dialog::backdrop {
@@ -897,5 +975,242 @@ menu {
   .chart {
     height: 190px;
     gap: 4px;
+  }
+}
+
+@media (min-width: 981px) {
+  body {
+    padding-top: 64px;
+    background:
+      linear-gradient(180deg, #fcfcf9 0, #f5f6f2 260px, #f0f3ef 100%),
+      repeating-linear-gradient(90deg, rgba(35, 79, 67, 0.014) 0 1px, transparent 1px 96px);
+  }
+
+  .topbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    min-height: 64px;
+    padding: 0 18px;
+    border-bottom: 1px solid rgba(35, 79, 67, 0.12);
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 8px 26px rgba(31, 52, 44, 0.055);
+  }
+
+  .topbar > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+  }
+
+  .topbar .eyebrow {
+    display: none;
+  }
+
+  .topbar h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 21px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .brand-mark {
+    display: inline-block;
+  }
+
+  .top-actions {
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 9px;
+  }
+
+  .top-actions button,
+  .user-badge {
+    min-height: 38px;
+    white-space: nowrap;
+  }
+
+  main {
+    width: auto;
+    max-width: none;
+    margin: 24px 28px 56px 200px;
+  }
+
+  .module-nav {
+    position: fixed;
+    z-index: 9;
+    left: 0;
+    top: 64px;
+    bottom: 0;
+    width: 176px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 22px 12px;
+    border-width: 0 1px 0 0;
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: none;
+    backdrop-filter: blur(14px);
+  }
+
+  .module-nav::after {
+    content: "大岚文旅数据中心\A v1.3";
+    white-space: pre;
+    position: absolute;
+    left: 24px;
+    right: 18px;
+    bottom: 22px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(35, 79, 67, 0.1);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .module-tab {
+    justify-content: flex-start;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 14px;
+    color: #4c5d54;
+    font-weight: 700;
+    text-align: left;
+    box-shadow: none;
+  }
+
+  .module-tab::before {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    margin-right: 10px;
+    color: currentColor;
+    font-size: 15px;
+  }
+
+  .module-tab[data-view="maintainView"]::before {
+    content: "□";
+  }
+
+  .module-tab[data-view="entryView"]::before {
+    content: "＋";
+  }
+
+  .module-tab[data-view="analysisView"]::before {
+    content: "▥";
+  }
+
+  .module-tab.active {
+    background: linear-gradient(135deg, #285b4d, #174336);
+    color: #fff;
+    box-shadow: 0 14px 28px rgba(35, 79, 67, 0.22);
+  }
+
+  .metrics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .metric {
+    min-height: 88px;
+    padding: 15px 16px;
+  }
+
+  .metric b {
+    font-size: 24px;
+  }
+
+  .panel {
+    padding: 20px;
+    box-shadow: 0 12px 34px rgba(26, 40, 34, 0.055);
+  }
+
+  .panel-title {
+    margin-bottom: 14px;
+  }
+
+  .panel h2 {
+    font-size: 20px;
+  }
+
+  .analysis-hero {
+    padding: 20px 20px 24px;
+  }
+
+  .analysis-hero .panel-title {
+    position: relative;
+    padding-left: 16px;
+    border-bottom: 1px solid rgba(35, 79, 67, 0.09);
+    padding-bottom: 14px;
+  }
+
+  .analysis-hero .panel-title::before,
+  .compact-title::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 4px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--brand);
+  }
+
+  .compact-title {
+    position: relative;
+    padding-left: 14px;
+  }
+
+  #analysisMonthCards {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .analysis-card {
+    grid-template-columns: 44px minmax(0, 1fr);
+    min-height: 106px;
+    padding: 15px;
+  }
+
+  .analysis-card::before {
+    display: none;
+  }
+
+  .analysis-card b {
+    font-size: 23px;
+  }
+
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .admin-alerts {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .analysis-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+    gap: 16px;
+  }
+
+  .chart-panel .chart {
+    height: 250px;
+  }
+
+  .chart {
+    padding-top: 24px;
+  }
+
+  th,
+  td {
+    padding: 13px 14px;
   }
 }
