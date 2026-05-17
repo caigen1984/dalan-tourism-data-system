@@ -472,6 +472,7 @@ function renderSelectedEntityBox() {
   const month = document.querySelector("#entryMonth").value;
   const typeText = getTypeText(state.entryType);
   const existing = entity ? findOperationRecord(entity.id, state.entryType, month) : null;
+  document.querySelector("#openOperationBtn").textContent = existing ? "修改本月数据" : "新增本月数据";
   document.querySelector("#selectedEntityBox").innerHTML = entity
     ? `
       <p class="eyebrow">当前选择</p>
@@ -819,15 +820,16 @@ function renderAnalysisMonthSituation(rows) {
   renderStatCards("#analysisMonthCards", cards);
   renderAdminAlertCards(records);
   const columns = getAnalysisMonthColumns();
-  document.querySelector("#analysisMonthHead").innerHTML = columns.map(([, label]) => `<th>${label}</th>`).join("");
+  document.querySelector("#analysisMonthHead").innerHTML = `${columns.map(([, label]) => `<th>${label}</th>`).join("")}<th>操作</th>`;
 
   document.querySelector("#analysisMonthRows").innerHTML = records.length
     ? records.map(record => `
       <tr>
         ${columns.map(([key]) => `<td>${formatAnalysisRecordCell(key, record)}</td>`).join("")}
+        <td>${analysisRowActions(record.id)}</td>
       </tr>
     `).join("")
-    : `<tr><td colspan="${columns.length}" class="empty-cell">该月份还没有录入明细。</td></tr>`;
+    : `<tr><td colspan="${columns.length + 1}" class="empty-cell">该月份还没有录入明细。</td></tr>`;
 }
 
 function renderAdminAlertCards(records) {
@@ -866,14 +868,96 @@ function getMissingReports(month) {
 }
 
 function getRiskSignals(records) {
-  return [
-    ...records.filter(record => record.targetType === "homestay" && Number(record.occupancyRate || 0) > 100)
-      .map(record => `${record.targetName} 入住率超过 100%`),
-    ...records.filter(record => record.targetType === "homestay" && Number(record.guestCount || 0) > 0 && Number(record.revenue || 0) === 0)
-      .map(record => `${record.targetName} 有入住但营收为 0`),
-    ...records.filter(record => ["scenicSpot", "newBusiness", "farmhouse"].includes(record.targetType) && Number(record.visitors || 0) > 0 && Number(record.revenue || 0) === 0)
-      .map(record => `${record.targetName} 有游客量但营收为 0`)
-  ];
+  const month = state.analysisMonth || records[0]?.month || "";
+  const issues = [];
+  const seen = new Map();
+
+  for (const record of records) {
+    const duplicateKey = `${record.targetType}:${record.targetId}:${record.month}`;
+    if (record.targetType !== "activity") seen.set(duplicateKey, (seen.get(duplicateKey) || 0) + 1);
+    const entity = getEntityByRecord(record);
+    const revenue = Number(record.revenue || 0);
+    const guests = Number(record.guestCount || 0);
+    const visitors = Number(record.visitors || 0);
+
+    if (!entity && record.targetType !== "activity") issues.push(`${record.targetName} 找不到对应基础资料，请核对绑定对象。`);
+    if (["occupancyRate", "guestCount", "visitors", "revenue"].some(key => Number(record[key] || 0) < 0)) {
+      issues.push(`${record.targetName} 存在负数，请核对录入。`);
+    }
+
+    if (record.targetType === "homestay") {
+      if (Number(record.occupancyRate || 0) > 100) issues.push(`${record.targetName} 入住率超过 100%，请核对。`);
+      if (Number(record.occupancyRate || 0) > 0 && guests === 0) issues.push(`${record.targetName} 有入住率但入住人数为 0。`);
+      if (guests > 0 && revenue === 0) issues.push(`${record.targetName} 有入住但营收为 0。`);
+      if (entity?.beds && guests > Number(entity.beds || 0) * daysInMonth(record.month)) {
+        issues.push(`${record.targetName} 入住人数超过床位月承载参考，请核对。`);
+      }
+    }
+
+    if (["scenicSpot", "newBusiness", "farmhouse"].includes(record.targetType)) {
+      if (visitors > 0 && revenue === 0) issues.push(`${record.targetName} 有游客量但营收为 0。`);
+      if (revenue > 0 && visitors === 0) issues.push(`${record.targetName} 有营收但游客量为 0。`);
+      if (entity?.dailyCapacity && visitors > Number(entity.dailyCapacity || 0) * daysInMonth(record.month)) {
+        issues.push(`${record.targetName} 游客量超过月承载参考，请核对。`);
+      }
+    }
+
+    if (record.targetType === "activity") {
+      if (!String(record.activityName || "").trim()) issues.push("存在未填写活动名称的活动记录。");
+      if (!record.activityDate) issues.push(`${record.activityName || "活动记录"} 未填写活动日期。`);
+      if (record.activityDate && !String(record.activityDate).startsWith(record.month)) {
+        issues.push(`${record.activityName || "活动记录"} 的活动日期不在记录月份内。`);
+      }
+      if (revenue > 0 && visitors === 0) issues.push(`${record.activityName || "活动记录"} 有营收但活动游客为 0。`);
+    }
+
+    const previous = previousRecordFor(record);
+    const currentMainValue = mainRecordValue(record);
+    const previousMainValue = previous ? mainRecordValue(previous) : 0;
+    if (previousMainValue > 0 && currentMainValue > previousMainValue * 3) {
+      issues.push(`${record.targetName} 较上月增长超过 200%，建议核对是否漏填或重复填报。`);
+    }
+    if (previousMainValue > 0 && currentMainValue < previousMainValue * 0.3) {
+      issues.push(`${record.targetName} 较上月下降超过 70%，建议核对是否漏填。`);
+    }
+  }
+
+  for (const [key, count] of seen.entries()) {
+    if (count > 1) {
+      const [, targetId] = key.split(":");
+      const record = records.find(item => item.targetId === targetId);
+      issues.push(`${record?.targetName || "某经营主体"} 本月存在重复记录，请合并核对。`);
+    }
+  }
+
+  const dailyReferences = state.data.dailyReferences.filter(item => item.date?.startsWith(month));
+  for (const item of dailyReferences) {
+    if (Number(item.vehicleTraffic || 0) < 0 || Number(item.visitors || 0) < 0) issues.push(`${item.date} 日参考数据存在负数。`);
+    if (Number(item.visitors || 0) > 0 && Number(item.vehicleTraffic || 0) === 0) issues.push(`${item.date} 有游客量但车流量为 0，请核对。`);
+    if (item.parkingPressure === "高" && Number(item.vehicleTraffic || 0) < 100) issues.push(`${item.date} 停车压力为高但车流量较低，请核对。`);
+  }
+
+  return [...new Set(issues)];
+}
+
+function daysInMonth(month) {
+  if (!month) return 31;
+  const [year, monthIndex] = month.split("-").map(Number);
+  return new Date(year, monthIndex, 0).getDate();
+}
+
+function previousRecordFor(record) {
+  const previousMonth = previousMonthKey(record.month);
+  return state.data.operationRecords.find(item =>
+    item.month === previousMonth &&
+    item.targetType === record.targetType &&
+    item.targetId === record.targetId
+  );
+}
+
+function mainRecordValue(record) {
+  if (record.targetType === "homestay") return Number(record.guestCount || 0);
+  return Number(record.visitors || 0);
 }
 
 function renderAdminAnalysis() {
@@ -1087,6 +1171,14 @@ function rowActions(id, scope) {
     <div class="row-actions">
       <button class="ghost" data-scope="${scope}" data-edit="${id}">编辑</button>
       <button class="danger" data-scope="${scope}" data-delete="${id}">删除</button>
+    </div>
+  `;
+}
+
+function analysisRowActions(id) {
+  return `
+    <div class="row-actions">
+      <button class="ghost" data-analysis-edit="${id}">修改</button>
     </div>
   `;
 }
@@ -1390,22 +1482,60 @@ function normalizeOperationPayload(payload) {
   return payload;
 }
 
+function validateOperationPayload(payload) {
+  if (!payload.month) return "请选择记录月份。";
+  if (!payload.targetType) return "请选择对象类型。";
+  if (!payload.targetId) return "请选择具体对象。";
+  for (const field of ["occupancyRate", "guestCount", "visitors", "revenue"]) {
+    if (Number(payload[field] || 0) < 0) return "录入数据不能为负数。";
+  }
+  if (payload.targetType === "homestay" && Number(payload.occupancyRate || 0) > 100) {
+    return "民宿入住率不能超过 100%。";
+  }
+  if (payload.targetType === "activity") {
+    if (!String(payload.activityName || "").trim()) return "活动记录需要填写活动名称。";
+    if (!payload.activityDate) return "活动记录需要填写活动日期。";
+    if (!String(payload.activityDate).startsWith(payload.month)) return "活动日期应在记录月份内。";
+  }
+  return "";
+}
+
+function validateDailyPayload(payload) {
+  if (!payload.date) return "请选择日期。";
+  if (Number(payload.vehicleTraffic || 0) < 0 || Number(payload.visitors || 0) < 0) {
+    return "日参考数据不能为负数。";
+  }
+  return "";
+}
+
 async function saveDialog(event) {
   event.preventDefault();
   const payload = readForm(event.currentTarget);
   const editing = state.editing;
   const resource = editing.scope === "operation" ? "operationRecords" : editing.scope === "daily" ? "dailyReferences" : state.activeMaintainTab;
 
-  if (editing.item) {
-    await api(`/api/${resource}/${editing.item.id}`, { method: "PUT", body: JSON.stringify(payload) });
-  } else {
-    await api(`/api/${resource}`, { method: "POST", body: JSON.stringify(payload) });
+  const message = resource === "operationRecords"
+    ? validateOperationPayload(payload)
+    : resource === "dailyReferences" ? validateDailyPayload(payload) : "";
+  if (message) {
+    alert(message);
+    return;
   }
-  document.querySelector("#editDialog").close();
-  await loadAll();
-  if (resource === "users" && isAdmin()) {
-    state.data.users = enrichUsers(await api("/api/users"), state.data.homestays, state.data.scenicSpots, state.data.newBusinesses, state.data.farmhouses);
-    renderMaintainTable();
+
+  try {
+    if (editing.item) {
+      await api(`/api/${resource}/${editing.item.id}`, { method: "PUT", body: JSON.stringify(payload) });
+    } else {
+      await api(`/api/${resource}`, { method: "POST", body: JSON.stringify(payload) });
+    }
+    document.querySelector("#editDialog").close();
+    await loadAll();
+    if (resource === "users" && isAdmin()) {
+      state.data.users = enrichUsers(await api("/api/users"), state.data.homestays, state.data.scenicSpots, state.data.newBusinesses, state.data.farmhouses);
+      renderMaintainTable();
+    }
+  } catch (error) {
+    alert(error.message);
   }
 }
 
@@ -1482,6 +1612,13 @@ document.querySelector("#entryEntitySelect").addEventListener("change", event =>
 document.querySelector("#analysisMonthSelect").addEventListener("change", event => {
   state.analysisMonth = event.target.value;
   api("/api/analysis").then(renderAnalysis).catch(error => alert(error.message));
+});
+
+document.querySelector("#analysisMonthRows").addEventListener("click", event => {
+  const editId = event.target.dataset.analysisEdit;
+  if (!editId) return;
+  const record = state.data.operationRecords.find(item => item.id === editId);
+  if (record) openOperationDialog(record);
 });
 
 document.querySelector("#editDialog").addEventListener("click", event => {

@@ -472,6 +472,50 @@ function normalizeOperationRecordPayload(payload) {
   };
 }
 
+function validateOperationRecordPayload(payload) {
+  if (!payload.month) throw new Error("请选择记录月份");
+  if (!payload.targetType) throw new Error("请选择对象类型");
+  if (!payload.targetId) throw new Error("请选择具体对象");
+
+  for (const field of ["occupancyRate", "guestCount", "visitors", "revenue"]) {
+    if (normalizeNumber(payload[field]) < 0) throw new Error("录入数据不能为负数");
+  }
+  if (payload.targetType === "homestay" && normalizeNumber(payload.occupancyRate) > 100) {
+    throw new Error("民宿入住率不能超过 100%");
+  }
+  if (payload.targetType === "activity") {
+    if (!String(payload.activityName || "").trim()) throw new Error("活动记录需要填写活动名称");
+    if (!payload.activityDate) throw new Error("活动记录需要填写活动日期");
+    if (payload.activityDate && !String(payload.activityDate).startsWith(payload.month)) {
+      throw new Error("活动日期应在记录月份内");
+    }
+  }
+}
+
+function validateDailyReferencePayload(payload) {
+  if (!payload.date) throw new Error("请选择日期");
+  for (const field of ["vehicleTraffic", "visitors"]) {
+    if (normalizeNumber(payload[field]) < 0) throw new Error("日参考数据不能为负数");
+  }
+}
+
+function assertNoDuplicateRecord(store, listName, id, payload) {
+  if (listName === "operationRecords") {
+    const duplicate = store.operationRecords.find(item =>
+      item.id !== id &&
+      item.targetType !== "activity" &&
+      item.targetType === payload.targetType &&
+      item.targetId === payload.targetId &&
+      item.month === payload.month
+    );
+    if (duplicate) throw new Error("该对象本月已有记录，请直接编辑原记录");
+  }
+  if (listName === "dailyReferences") {
+    const duplicate = store.dailyReferences.find(item => item.id !== id && item.date === payload.date);
+    if (duplicate) throw new Error("该日期已有日参考记录，请直接编辑原记录");
+  }
+}
+
 function sendJson(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(payload));
@@ -987,6 +1031,9 @@ async function handleApi(req, res) {
     let payload = await parseBody(req);
     if (listName === "operationRecords") payload = normalizeOperationRecordPayload(scopeOperationPayload(user, payload));
     assertCanWrite(user, listName, payload.id, payload);
+    if (listName === "operationRecords") validateOperationRecordPayload(payload);
+    if (listName === "dailyReferences") validateDailyReferencePayload(payload);
+    assertNoDuplicateRecord(store, listName, "", payload);
     if (listName === "operationRecords" && payload.month) {
       payload.periodStart = monthStart(payload.month);
       payload.periodEnd = monthEnd(payload.month);
@@ -1001,6 +1048,9 @@ async function handleApi(req, res) {
     if (!visibleItem) return sendError(res, 404, "数据不存在");
     if (listName === "operationRecords") payload = normalizeOperationRecordPayload(scopeOperationPayload(user, payload));
     assertCanWrite(user, listName, id, payload);
+    if (listName === "operationRecords") validateOperationRecordPayload(payload);
+    if (listName === "dailyReferences") validateDailyReferencePayload(payload);
+    assertNoDuplicateRecord(store, listName, id, payload);
     if (listName === "operationRecords" && payload.month) {
       payload.periodStart = monthStart(payload.month);
       payload.periodEnd = monthEnd(payload.month);
