@@ -5,6 +5,8 @@ const state = {
   entryType: "homestay",
   selectedEntityId: "",
   analysisMonth: "",
+  feedbackMonth: "",
+  feedbackGeneratedAt: "",
   data: {
     homestays: [],
     scenicSpots: [],
@@ -183,6 +185,116 @@ const dailyReferenceSchema = {
   ]
 };
 
+const feedbackKeywords = ["大岚", "丹山赤水", "大岚民宿", "大岚避暑", "大岚露营", "大岚农家乐", "大岚咖啡", "大岚徒步"];
+
+const feedbackSources = [
+  { name: "百度搜索", type: "全网搜索", mode: "site/关键词", status: "启用", note: "用于发现公开网页、新闻、攻略和平台摘要。" },
+  { name: "携程", type: "旅游平台", mode: "固定页面/搜索结果", status: "启用", note: "优先关注景区、酒店、游记和点评摘要。" },
+  { name: "Trip.com", type: "旅游平台", mode: "固定页面", status: "启用", note: "可补充英文站与目的地页面摘要。" },
+  { name: "马蜂窝", type: "攻略游记", mode: "搜索结果", status: "待接入", note: "用于发现游记、路线和游客体验。" },
+  { name: "大众点评", type: "本地生活", mode: "搜索结果/导入", status: "待接入", note: "适合农家乐、餐饮、新业态口碑。" },
+  { name: "小红书", type: "内容社区", mode: "手动导入/摘要", status: "谨慎接入", note: "强反爬平台，正式版优先做手动导入或合规接口。" }
+];
+
+const mockNetworkFeedback = [
+  {
+    month: "2026-05",
+    platform: "小红书",
+    keyword: "大岚避暑",
+    title: "周末去大岚避暑，山里空气和景色都很舒服",
+    content: "丹山赤水沿线很适合拍照，亲子徒步体验不错，民宿管家响应也快。",
+    targetType: "scenicSpot",
+    targetName: "丹山赤水",
+    sentiment: "positive",
+    tags: ["风景", "避暑", "亲子"],
+    heat: 428
+  },
+  {
+    month: "2026-05",
+    platform: "小红书",
+    keyword: "大岚民宿",
+    title: "云岭山居民宿视野很好，早餐也比较有当地特色",
+    content: "山景房体验好，五一期间价格能接受，但建议提前预订。",
+    targetType: "homestay",
+    targetName: "云岭山居民宿",
+    sentiment: "positive",
+    tags: ["民宿", "服务", "早餐"],
+    heat: 316
+  },
+  {
+    month: "2026-05",
+    platform: "大众点评",
+    keyword: "大岚农家乐",
+    title: "农家乐菜量足，但高峰期上菜偏慢",
+    content: "土鸡和笋干不错，节假日人多的时候等菜时间偏长。",
+    targetType: "farmhouse",
+    targetName: "山风里",
+    sentiment: "neutral",
+    tags: ["农家乐", "餐饮", "排队"],
+    heat: 112
+  },
+  {
+    month: "2026-05",
+    platform: "小红书",
+    keyword: "大岚停车",
+    title: "丹山赤水入口附近停车有点紧张",
+    content: "景色好看，但是五一首日入口附近车比较多，停车引导可以再清楚一点。",
+    targetType: "scenicSpot",
+    targetName: "丹山赤水",
+    sentiment: "negative",
+    tags: ["停车", "交通", "引导"],
+    heat: 265
+  },
+  {
+    month: "2026-05",
+    platform: "携程",
+    keyword: "大岚住宿",
+    title: "溪谷人家适合家庭住，周边比较安静",
+    content: "房间干净，晚上安静，避暑资源建议提前启动。",
+    targetType: "homestay",
+    targetName: "溪谷人家",
+    sentiment: "positive",
+    tags: ["民宿", "卫生", "亲子"],
+    heat: 178
+  },
+  {
+    month: "2026-05",
+    platform: "抖音",
+    keyword: "大岚露营",
+    title: "松雾咖啡附近露营氛围不错",
+    content: "拍照出片，适合下午过去，但公共指示牌还可以更明显。",
+    targetType: "newBusiness",
+    targetName: "松雾咖啡",
+    sentiment: "positive",
+    tags: ["新业态", "咖啡", "露营"],
+    heat: 236
+  },
+  {
+    month: "2026-04",
+    platform: "小红书",
+    keyword: "大岚春游",
+    title: "春季徒步路线适合轻量出行",
+    content: "茶园徒步和民宿体验结合很好，适合周末两天一晚。",
+    targetType: "activity",
+    targetName: "茶园徒步活动",
+    sentiment: "positive",
+    tags: ["活动", "徒步", "茶园"],
+    heat: 184
+  },
+  {
+    month: "2026-04",
+    platform: "大众点评",
+    keyword: "丹山赤水",
+    title: "景区入口排队稍明显",
+    content: "周末游客比较多，入口排队和停车动线需要优化。",
+    targetType: "scenicSpot",
+    targetName: "丹山赤水",
+    sentiment: "negative",
+    tags: ["排队", "停车", "景区"],
+    heat: 147
+  }
+];
+
 const numberFields = new Set([
   "rooms",
   "beds",
@@ -275,6 +387,7 @@ async function loadAll() {
   renderOperationTable();
   if (isAdmin()) renderDailyReferenceTable();
   renderAnalysis(analysis);
+  if (isAdmin()) renderNetworkFeedback();
 }
 
 async function boot() {
@@ -303,10 +416,16 @@ function applyRoleUi() {
   document.querySelector("#userBadge").textContent = `${state.user.displayName} · ${roleText(state.user.role)}`;
   document.querySelector("#addBtn").hidden = !admin;
   document.querySelector("#dailyReferencePanel").hidden = !admin;
+  document.querySelectorAll(".admin-only").forEach(item => {
+    item.hidden = !admin;
+  });
   document.querySelector("#entryTypeSelect option[value='activity']").hidden = !admin;
   document.querySelector("#entryTypeSelect option[value='activity']").disabled = !admin;
 
   if (!admin) {
+    if (state.activeView === "feedbackView") state.activeView = "maintainView";
+    document.querySelectorAll(".module-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.view === state.activeView));
+    document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === state.activeView));
     state.activeMaintainTab = maintainTabForRole(state.user.role);
     state.entryType = state.user.role;
     document.querySelectorAll(".tab").forEach(tab => {
@@ -1143,6 +1262,130 @@ function renderAnalysisList(selector, rows) {
   box.innerHTML = rows.map(item => `<p class="analysis-item">${item}</p>`).join("");
 }
 
+function renderNetworkFeedback() {
+  if (!isAdmin()) return;
+  const months = [...new Set([
+    ...mockNetworkFeedback.map(item => item.month),
+    ...state.data.operationRecords.map(item => item.month)
+  ].filter(Boolean))].sort();
+  if (!state.feedbackMonth || !months.includes(state.feedbackMonth)) {
+    state.feedbackMonth = state.analysisMonth || months.at(-1) || "";
+  }
+  const select = document.querySelector("#feedbackMonthSelect");
+  select.innerHTML = months.length
+    ? months.slice().reverse().map(month => `<option value="${month}" ${month === state.feedbackMonth ? "selected" : ""}>${month}</option>`).join("")
+    : `<option value="">暂无月份</option>`;
+
+  const rows = mockNetworkFeedback.filter(item => item.month === state.feedbackMonth);
+  const positive = rows.filter(item => item.sentiment === "positive").length;
+  const neutral = rows.filter(item => item.sentiment === "neutral").length;
+  const negative = rows.filter(item => item.sentiment === "negative").length;
+  const heat = rows.reduce((sum, item) => sum + Number(item.heat || 0), 0);
+  const platforms = countBy(rows, "platform");
+  const tags = countTags(rows);
+  const negativeTags = countTags(rows.filter(item => item.sentiment === "negative"));
+  const topPlatform = Object.entries(platforms).sort((a, b) => b[1] - a[1])[0]?.[0] || "暂无";
+
+  renderStatCards("#feedbackCards", [
+    { icon: "声", label: "网络声量", value: `${number(rows.length)} 条`, delta: `模拟热度 ${number(heat)}` },
+    { icon: "赞", label: "正面反馈", value: `${number(positive)} 条`, delta: rows.length ? `占比 ${percent(Math.round((positive / rows.length) * 100))}` : "暂无" },
+    { icon: "险", label: "负面反馈", value: `${number(negative)} 条`, delta: negative ? `${Object.keys(negativeTags).slice(0, 2).join("、")} 需关注` : "暂无明显风险", tone: negative ? "gold" : "" },
+    { icon: "台", label: "主要平台", value: topPlatform, delta: `覆盖 ${number(Object.keys(platforms).length)} 个平台` }
+  ]);
+
+  renderFeedbackSources();
+  renderFeedbackKeywords();
+  renderFeedbackPlatformChart(platforms);
+  renderFeedbackTags(tags, negativeTags);
+  renderFeedbackRows(rows);
+  renderFeedbackReport(rows, { positive, neutral, negative, heat, platforms, tags, negativeTags });
+}
+
+function renderFeedbackSources() {
+  document.querySelector("#feedbackSources").innerHTML = feedbackSources.map(source => `
+    <article class="source-card ${source.status === "启用" ? "active" : ""}">
+      <div>
+        <strong>${source.name}</strong>
+        <span>${source.type} · ${source.mode}</span>
+      </div>
+      <b>${source.status}</b>
+      <p>${source.note}</p>
+    </article>
+  `).join("");
+}
+
+function renderFeedbackKeywords() {
+  document.querySelector("#feedbackKeywords").innerHTML = feedbackKeywords
+    .map(keyword => `<span>${keyword}</span>`)
+    .join("");
+}
+
+function countBy(rows, key) {
+  return rows.reduce((result, item) => {
+    result[item[key]] = (result[item[key]] || 0) + 1;
+    return result;
+  }, {});
+}
+
+function countTags(rows) {
+  return rows.flatMap(item => item.tags || []).reduce((result, tag) => {
+    result[tag] = (result[tag] || 0) + 1;
+    return result;
+  }, {});
+}
+
+function renderFeedbackPlatformChart(platforms) {
+  const rows = Object.entries(platforms)
+    .map(([name, value]) => ({ name, value, label: `${number(value)} 条`, meta: "模拟采集记录" }))
+    .sort((a, b) => b.value - a.value);
+  renderLinkageBars("#feedbackPlatformChart", rows);
+}
+
+function renderFeedbackTags(tags, negativeTags) {
+  const allTags = Object.entries(tags).sort((a, b) => b[1] - a[1]);
+  document.querySelector("#feedbackTagCloud").innerHTML = allTags.length
+    ? allTags.map(([tag, count]) => `<span class="${negativeTags[tag] ? "warning" : ""}">${tag}<b>${count}</b></span>`).join("")
+    : `<p class="empty">暂无标签。</p>`;
+}
+
+function renderFeedbackRows(rows) {
+  document.querySelector("#feedbackRows").innerHTML = rows.length
+    ? rows.map(item => `
+      <tr>
+        <td>${item.platform}</td>
+        <td>${item.keyword}</td>
+        <td><b>${item.title}</b><br><span class="eyebrow">${item.content}</span></td>
+        <td>${getTypeText(item.targetType)} · ${item.targetName}</td>
+        <td><span class="sentiment ${item.sentiment}">${sentimentText(item.sentiment)}</span></td>
+        <td>${(item.tags || []).join("、")}</td>
+        <td>${number(item.heat)}</td>
+      </tr>
+    `).join("")
+    : `<tr><td colspan="7" class="empty-cell">该月份暂无模拟反馈。</td></tr>`;
+}
+
+function renderFeedbackReport(rows, summary) {
+  const topTags = Object.entries(summary.tags).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tag]) => tag);
+  const riskTags = Object.entries(summary.negativeTags).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([tag]) => tag);
+  const topObjects = Object.entries(countBy(rows, "targetName")).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([name]) => name);
+  const month = state.feedbackMonth || "当前月份";
+  const generatedAt = state.feedbackGeneratedAt || "尚未手动生成，本页显示模拟草稿";
+  const positiveRate = rows.length ? Math.round((summary.positive / rows.length) * 100) : 0;
+  const negativeRate = rows.length ? Math.round((summary.negative / rows.length) * 100) : 0;
+  document.querySelector("#feedbackReport").innerHTML = `
+    <p class="eyebrow">报告状态：${generatedAt}；计划任务：每月28日自动全局搜索</p>
+    <h3>${month} 大岚镇网络反馈研判</h3>
+    <p>本月模拟采集 ${number(rows.length)} 条网络反馈，覆盖 ${Object.keys(summary.platforms).join("、") || "暂无平台"}；综合热度 ${number(summary.heat)}。反馈整体以正面为主，正面占比 ${positiveRate}%，负面占比 ${negativeRate}%。</p>
+    <p>游客主要关注 ${topTags.join("、") || "暂无明显高频词"}；被提及较多的对象为 ${topObjects.join("、") || "暂无"}。</p>
+    <p>${riskTags.length ? `需要重点跟进 ${riskTags.join("、")} 等问题，建议结合节假日车流、活动安排和现场服务进行排查。` : "暂未发现集中负面风险，可继续观察平台声量变化。"}</p>
+    <p>建议下月将平台反馈较好的景区、民宿和新业态组合成主题线路，同时对负面标签进行闭环整改，形成“网络反馈 - 现场处置 - 经营提升”的月度机制。</p>
+  `;
+}
+
+function sentimentText(value) {
+  return { positive: "正面", neutral: "中性", negative: "负面" }[value] || "中性";
+}
+
 function renderBarChart(selector, rows, key, formatter) {
   const chart = document.querySelector(selector);
   if (!rows.length) {
@@ -1614,6 +1857,18 @@ document.querySelector("#analysisMonthSelect").addEventListener("change", event 
   api("/api/analysis").then(renderAnalysis).catch(error => alert(error.message));
 });
 
+document.querySelector("#feedbackMonthSelect").addEventListener("change", event => {
+  state.feedbackMonth = event.target.value;
+  state.feedbackGeneratedAt = "";
+  renderNetworkFeedback();
+});
+
+document.querySelector("#generateFeedbackBtn").addEventListener("click", () => {
+  const now = new Date();
+  state.feedbackGeneratedAt = `手动搜索并生成于 ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  renderNetworkFeedback();
+});
+
 document.querySelector("#analysisMonthRows").addEventListener("click", event => {
   const editId = event.target.dataset.analysisEdit;
   if (!editId) return;
@@ -1664,10 +1919,12 @@ function getListForType(type) {
 document.querySelector(".module-nav").addEventListener("click", event => {
   const button = event.target.closest(".module-tab");
   if (!button) return;
+  if (button.dataset.view === "feedbackView" && !isAdmin()) return;
   state.activeView = button.dataset.view;
   document.querySelectorAll(".module-tab").forEach(tab => tab.classList.toggle("active", tab === button));
   document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === state.activeView));
   setMetricsVisibility();
+  if (state.activeView === "feedbackView") renderNetworkFeedback();
 });
 
 document.querySelector(".tabs").addEventListener("click", event => {

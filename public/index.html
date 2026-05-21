@@ -47,6 +47,7 @@
         <button class="module-tab active" data-view="maintainView">基础维护</button>
         <button class="module-tab" data-view="entryView">运维录入</button>
         <button class="module-tab" data-view="analysisView">数据分析</button>
+        <button class="module-tab admin-only" data-view="feedbackView">网络反馈</button>
       </nav>
 
       <section class="metrics" id="metrics"></section>
@@ -268,6 +269,104 @@
               </div>
             </div>
             <div class="analysis-list" id="missingDataList"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="feedbackView" class="view">
+        <section class="analysis-hero panel feedback-hero">
+          <div class="panel-title">
+            <div>
+              <p class="eyebrow">模拟采集 · 每月28日自动生成</p>
+              <h2>网络反馈报告</h2>
+            </div>
+            <div class="feedback-actions">
+              <label class="inline-control">报告月份
+                <select id="feedbackMonthSelect"></select>
+              </label>
+              <button id="generateFeedbackBtn" type="button">手动搜索并生成报告</button>
+            </div>
+          </div>
+          <div class="feedback-note">
+            当前为本地 demo：管理员可手动搜索；正式版可在每月28日按已启用数据源和关键词做一次全局搜索，并生成网络反馈报告。
+          </div>
+          <div class="month-cards" id="feedbackCards"></div>
+        </section>
+
+        <section class="analysis-grid feedback-grid">
+          <article class="panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">采集范围</p>
+                <h2>数据源配置</h2>
+              </div>
+            </div>
+            <div class="source-grid" id="feedbackSources"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">搜索条件</p>
+                <h2>关键词配置</h2>
+              </div>
+            </div>
+            <div class="keyword-grid" id="feedbackKeywords"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">平台声量</p>
+                <h2>来源分布</h2>
+              </div>
+            </div>
+            <div class="rank-chart" id="feedbackPlatformChart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">口碑结构</p>
+                <h2>正面与负面标签</h2>
+              </div>
+            </div>
+            <div class="tag-cloud" id="feedbackTagCloud"></div>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">AI研判草稿</p>
+                <h2>本月网络反馈报告</h2>
+              </div>
+            </div>
+            <div class="feedback-report" id="feedbackReport"></div>
+          </article>
+
+          <article class="panel wide">
+            <div class="panel-title compact-title">
+              <div>
+                <p class="eyebrow">模拟明细</p>
+                <h2>采集到的网络反馈</h2>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>平台</th>
+                    <th>关键词</th>
+                    <th>标题/摘要</th>
+                    <th>关联对象</th>
+                    <th>情绪</th>
+                    <th>标签</th>
+                    <th>热度</th>
+                  </tr>
+                </thead>
+                <tbody id="feedbackRows"></tbody>
+              </table>
+            </div>
           </article>
         </section>
       </section>
